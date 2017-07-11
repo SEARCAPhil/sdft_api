@@ -37,4 +37,29 @@ class Activities
 		}catch(PDOException $e){echo $e->getMessage();$db->rollback(); echo $e->getMessage();}
 	}
 
+	function get_activities($db,$id,$page=1){
+
+		#get all collaborators for a certain basket,excluding the author of the basket
+		$sql='SELECT basket_activities.*,profile_name as name,profile_image as image,department,department_alias as alias,last_name,first_name FROM basket_activities LEFT JOIN account_profile on account_profile.id=basket_activities.profile_id where basket_id=:basket_id ORDER BY date_created DESC';
+		
+
+		$sth=$db->prepare($sql);
+		$sth->bindValue(':basket_id',$id);
+		
+		$sth->execute();
+
+
+		$result=array();
+
+		while($row=$sth->fetch(\PDO::FETCH_OBJ)){
+			if(empty($row->name)) $row->name=$row->first_name.' '.$row->last_name;
+			$result[]=$row;
+		}
+
+		
+
+		return $result;
+
+	}
+
 }

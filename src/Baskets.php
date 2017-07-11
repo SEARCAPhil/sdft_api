@@ -124,7 +124,10 @@ class Baskets
 
 		return $result;
 
-}
+	}
+
+
+
 
 	function get_attachments($db,$id){
 
@@ -176,6 +179,91 @@ class Baskets
 		return $results;
 
 	}
+
+
+
+	function create($db,$profile_id,$name,$description,$category,$keywords){
+
+		try{
+			$db->beginTransaction();
+			#get all collaborators for a certain basket,excluding the author of the basket
+			$sql='INSERT INTO basket(basket_name,profile_id,description,category,keywords)values(:basket_name,:profile_id,:description,:category,:keywords)';
+			
+
+			$sth=$db->prepare($sql);
+			$sth->bindValue(':basket_name',$name);
+			$sth->bindValue(':profile_id',$profile_id);
+			$sth->bindValue(':description',$description);
+			$sth->bindValue(':category',$category);
+			$sth->bindValue(':keywords',$keywords);
+			
+			$sth->execute();
+			
+
+			$last_insert_id=$db->lastInsertId();
+
+			$sql2='INSERT INTO basket_collaborators(basket_id,profile_id)values(:basket_id,:profile_id)';
+			$sth2=$db->prepare($sql2);
+			$sth2->bindValue(':basket_id',$last_insert_id);
+			$sth2->bindValue(':profile_id',$profile_id);
+
+			$sth2->execute();
+
+
+			$db->commit();
+
+			return $last_insert_id;
+
+		}catch(Exception $e){
+			$db->rollback();
+		}
+
+	}
+
+
+	function remove($db,$id){
+		try{
+
+			$sql2="UPDATE basket set is_deleted=1 where id=:id";
+			$sth3=$db->prepare($sql2);
+			$sth3->bindParam(':id',$id);
+			$sth3->execute();
+
+			return $sth3->rowCount();
+
+		}catch(Exception $e){
+			return array();
+		}
+
+	}
+
+	function update_status($db,$id,$status='closed'){
+		$sql="UPDATE basket set status=:status where id=:id";
+		$sth=$db->prepare($sql);
+		$sth->bindParam(':status',$status);
+		$sth->bindParam(':id',$id);
+
+		$sth->execute();
+
+		return $sth->rowCount();
+
+	}
+
+
+	function update_description($db,$id,$description){
+		$sql="UPDATE basket set description=:description where id=:id";
+		$sth=$db->prepare($sql);
+		$sth->bindParam(':description',$description);
+		$sth->bindParam(':id',$id);
+
+		$sth->execute();
+
+		return $sth->rowCount();
+
+	}
+
+
+
 }
 
 ?>
