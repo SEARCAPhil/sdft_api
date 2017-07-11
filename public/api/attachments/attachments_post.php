@@ -22,7 +22,7 @@ function attach($db,$file,$basket_id,$category_id,$author_id){
 	$file_tmp_name=$file['tmp_name'];
 	$file_size=$file['size'];
 	$ext = pathinfo($file_name, PATHINFO_EXTENSION);
-	$dir=$_SERVER['DOCUMENT_ROOT'].'/rfps/api/uploads/'.$basket_id.'/';
+	$dir=$_SERVER['DOCUMENT_ROOT'].'/sdft_api/public/uploads/'.$basket_id.'/';
 	#check extension
 	if(in_array($ext, $allowed_format)){
 		#check file size

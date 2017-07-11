@@ -34,7 +34,7 @@ function download($db,$id){
 			$attach_statement->execute();
 			if($row=$attach_statement->fetch(PDO::FETCH_OBJ)){
 
-					if(file_exists($_SERVER['DOCUMENT_ROOT'].'/rfps/api/uploads/'.$row->basket_id.'/'.$row->filename)){
+					if(file_exists($_SERVER['DOCUMENT_ROOT'].'/sdft_api/public/uploads/'.$row->basket_id.'/'.$row->filename)){
 						$file_exists=1;
 						#headers to force download
 						$returnFile=header("Content-Description: File Transfer"); 
@@ -42,7 +42,7 @@ function download($db,$id){
 						$returnFile.=header("Content-Disposition: attachment; filename=\"$row->filename\"");
 						$returnFile.=ob_clean();
 						$returnFile.=flush();
-						$returnFile.=readfile ($_SERVER['DOCUMENT_ROOT'].'/rfps/api/uploads/'.$row->basket_id.'/'.$row->filename);	
+						$returnFile.=readfile ($_SERVER['DOCUMENT_ROOT'].'/sdft_api/public/uploads/'.$row->basket_id.'/'.$row->filename);	
 					}
 			}
 
