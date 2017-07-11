@@ -263,6 +263,77 @@ class Baskets
 	}
 
 
+	function search($db,$id,$param,$status='open',$page=1){
+
+		define("LIMIT",30);
+
+		$page=$page>1?$page:1;
+		#set starting limit(page 1=10,page 2=20)
+		$start_page=$page<2?0:( integer)($page-1)*LIMIT;
+
+		#param
+		$param='%'.$param.'%';
+
+		if($status=='open'||$status=='closed'){
+			$sql='SELECT basket.id,basket.description,basket_category.category,basket.default_route,basket.current_route,basket.status,basket.date_created,basket.date_modified,basket_name as name,account_profile.uid as collaborators_id,account_profile.id as collaborators_profile_id,account_profile.profile_name,account_profile.last_name,account_profile.first_name,account_profile.department,account_profile.position,account_profile.department_alias as alias,account_profile.profile_image as image,basket.profile_id as author_profile_id FROM basket_collaborators LEFT JOIN account_profile on account_profile.id=basket_collaborators.profile_id LEFT JOIN basket on basket_collaborators.basket_id=basket.id LEFT JOIN basket_category on basket.category=basket_category.id where (account_profile.uid=:uid and basket.status=:status and basket.is_deleted=0) and basket.basket_name LIKE :param  ORDER BY date_modified DESC LIMIT :start_page,:LIMITS';	
+		}else{
+			$sql="SELECT basket.id,basket.description,basket_category.category,basket.default_route,basket.current_route,basket.status,basket.date_created,basket.date_modified,basket_name as name,account_profile.uid as collaborators_id,account_profile.id as collaborators_profile_id,account_profile.profile_name,account_profile.last_name,account_profile.first_name,account_profile.department,account_profile.position,account_profile.department_alias as alias,account_profile.profile_image as image,basket.profile_id as author_profile_id FROM basket_collaborators LEFT JOIN account_profile on account_profile.id=basket_collaborators.profile_id LEFT JOIN basket on basket_collaborators.basket_id=basket.id LEFT JOIN basket_category on basket.category=basket_category.id where (account_profile.uid=:uid and basket.status!='draft' and basket.is_deleted=0) and basket.basket_name LIKE :param ORDER BY date_modified DESC LIMIT :start_page,:LIMITS";		
+		}
+
+
+		//if draft
+		if($status=='draft'){
+			$sql="SELECT basket.id,basket.description,basket_category.category,basket.default_route,basket.current_route,basket.status,basket.date_created,basket.date_modified,basket_name as name,account_profile.uid as collaborators_id,account_profile.id as collaborators_profile_id,account_profile.profile_name,account_profile.last_name,account_profile.first_name,account_profile.department,account_profile.position,account_profile.department_alias as alias,account_profile.profile_image as image,basket.profile_id as author_profile_id FROM basket_collaborators LEFT JOIN account_profile on account_profile.id=basket_collaborators.profile_id LEFT JOIN basket on basket_collaborators.basket_id=basket.id LEFT JOIN basket_category on basket.category=basket_category.id where (account_profile.uid=:uid and basket.status='draft' and basket.is_deleted=0) and basket.basket_name LIKE :param  ORDER BY date_modified DESC LIMIT :start_page,:LIMITS";
+		}
+
+
+
+		$sql1='SELECT profile_name as name, department_alias as alias,department,position,uid,profile_image as image,first_name,last_name FROM account_profile where id=:id ORDER BY id DESC LIMIT 1';
+
+		$sth=$db->prepare($sql);
+		$sth->bindValue(':uid',$id);
+		$sth->bindValue(':param',$param);
+
+		//if status is present
+		if($status=='open'||$status=='closed'){
+			$sth->bindValue(':status',$status);
+		}
+
+		$sth->bindValue(':LIMITS',LIMIT,\PDO::PARAM_INT);
+		$sth->bindValue(':start_page',$start_page,\PDO::PARAM_INT);
+
+
+
+		$sth->execute();
+
+		$sth2=$db->prepare($sql1);
+
+		$result=array();
+
+		while($row=$sth->fetch(\PDO::FETCH_OBJ)){
+			if(strlen($row->description)>200) $row->description=substr($row->description, 0,200).'...';
+			$basket=$row;
+			$basket->author=array();
+			$sth2->bindValue(':id',$row->author_profile_id);
+			$sth2->execute();
+
+
+			while($row2=$sth2->fetch(\PDO::FETCH_ASSOC)){
+				#override name
+				if(empty($row2['name'])) $row2['name']=$row2['first_name'].' '.$row2['last_name'];
+				$basket->author=($row2);
+			}
+
+			$result[]=$basket;
+		}
+
+
+		return $result;
+
+
+	}
+
+
 
 }
 

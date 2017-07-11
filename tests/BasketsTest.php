@@ -67,7 +67,8 @@ class BasketsTest extends TestCase
 
 		#remove after testing
 		$baskets->remove($db,$new_basket_id);
-	}	
+	}
+
 }
 
 
