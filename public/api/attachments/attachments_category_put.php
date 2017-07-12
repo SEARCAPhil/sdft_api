@@ -6,6 +6,8 @@ use SDFT\Baskets;
 use SDFT\Token;
 use SDFT\Attachments;
 use SDFT\Activities;
+use SDFT\Notifications;
+use SDFT\Baskets\Collaborators;
 
 
 require_once('../../../vendor/autoload.php');
@@ -67,7 +69,7 @@ $activities=new Activities();
 
 
 //get parent basket
-$parent=$attachments->get_parent_basket($db,$id);
+$parent=$attachments->details($db,$id);
 $basket_id=$parent[0]->basket_id;
 $file_name=$parent[0]->original_filename;
 
@@ -82,6 +84,38 @@ if($category>1){
 
 	//log to database
 	$activities->log_activity($db,$__identity->profile_id,$basket_id,'Set category of '.$file_name. ' to '.$new_category);
+
+
+
+
+	/*--------------------------------
+	| Notify Users
+	|--------------------------------*/
+	//get basket information
+	$collaborators=new Collaborators();
+	$notifications=new Notifications();
+
+	$basket_collaborators=($collaborators->get_collaborators($db,$basket_id,$__identity->uid));
+
+
+	//Notify collaborators about the changes
+	if(isset($basket_collaborators[0]->uid)){
+
+		//send only if basket is already published
+		if($basket_collaborators[0]->status!='draft'){
+
+			for ($i=0; $i <count($basket_collaborators) ; $i++) { 
+				
+				//log to database
+				$notifications->notify($db,$__identity->uid,$basket_collaborators[$i]->uid,$basket_id,'file_category','Set category of '.$file_name. ' to '.$new_category);
+
+			}
+		}
+	}
+
+
+
+
 
 }
 

@@ -63,7 +63,7 @@ class Attachments
 	}
 
 
-	function get_parent_basket($db,$id){
+	function details($db,$id){
 		$sql="SELECT * from attachments where id=:id";
 		$sth=$db->prepare($sql);
 		$sth->bindParam(':id',$id);

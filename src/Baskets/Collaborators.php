@@ -50,7 +50,7 @@ class Collaborators
 	function get_collaborators($db,$id,$author_id,$exclude_author=true){
 
 		#get all collaborators for a certain basket,excluding the author of the basket
-		$sql='SELECT profile_name as name,first_name,last_name,department_alias as alias,department,position,profile_image as image,basket_collaborators.profile_id,basket.basket_name,basket_collaborators.id as collaborator_id,account_profile.uid,basket_id from basket_collaborators LEFT JOIN account_profile on basket_collaborators.profile_id=account_profile.id LEFT JOIN basket on basket.id=basket_collaborators.basket_id where basket_id=:id';
+		$sql='SELECT profile_name as name,first_name,last_name,department_alias as alias,department,position,profile_image as image,basket_collaborators.profile_id,basket.basket_name,basket.status,basket_collaborators.id as collaborator_id,account_profile.uid,basket_id from basket_collaborators LEFT JOIN account_profile on basket_collaborators.profile_id=account_profile.id LEFT JOIN basket on basket.id=basket_collaborators.basket_id where basket_id=:id';
 		
 
 		$sth=$db->prepare($sql);

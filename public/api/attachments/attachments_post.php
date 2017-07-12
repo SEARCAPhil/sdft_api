@@ -6,6 +6,8 @@ use SDFT\Baskets;
 use SDFT\Token;
 use SDFT\Attachments;
 use SDFT\Activities;
+use SDFT\Notifications;
+use SDFT\Baskets\Collaborators;
 
 
 require_once('../../../vendor/autoload.php');
@@ -112,6 +114,13 @@ if(isset($__identity->id)){
 //must contain files
 if(!isset($_FILES['file']))	exit;
 
+//get basket information
+$collaborators=new Collaborators();
+$basket_collaborators=($collaborators->get_collaborators($db,$id,$__identity->uid));
+
+$attachments=new Attachments();
+
+
 
 $file_id=attach($db,$_FILES['file'],$id,2,$__identity->profile_id);
 
@@ -120,11 +129,30 @@ if($id>0){
 	$response['status']=200;
 
 	$activities=new Activities();
+	$notifications=new Notifications();
 
 
 	//log to database
 	$file_name=utf8_encode(htmlentities(htmlspecialchars($_FILES['file']['name'])));
 	$activities->log_activity($db,$__identity->profile_id,$id,'Attached new file '.$file_name);
+
+	
+
+	//Notify collaborators about the changes
+	if(isset($basket_collaborators[0]->uid)){
+
+		//send only if basket is already published
+		if($basket_collaborators[0]->status!='draft'){
+			for ($i=0; $i <count($basket_collaborators) ; $i++) { 
+				
+				//log to database
+				$notifications->notify($db,$__identity->uid,$basket_collaborators[$i]->uid,$id,'uploaded');
+
+			}
+		}
+
+		
+	}
 
 }
 

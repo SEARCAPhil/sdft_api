@@ -5,6 +5,8 @@ use SDFT\Token;
 use SDFT\Baskets;
 use SDFT\Activities;
 use SDFT\Attachments;
+use SDFT\Notifications;
+use SDFT\Baskets\Collaborators;
 
 
 
@@ -71,6 +73,35 @@ if($status=='close'){
 	$attachments=new Attachments();
 	//close all attachments
 	$attachments->close_all($db,$id);
+
+
+	/*--------------------------------
+	| Notify Users
+	|--------------------------------*/
+	//get basket information
+	$collaborators=new Collaborators();
+	$notifications=new Notifications();
+
+	$basket_collaborators=($collaborators->get_collaborators($db,$id,$__identity->uid));
+
+
+	//Notify collaborators about the changes
+	if(isset($basket_collaborators[0]->uid)){
+
+		//send only if basket is already published
+		if($basket_collaborators[0]->status!='draft'){
+
+			for ($i=0; $i <count($basket_collaborators) ; $i++) { 
+				
+				//log to database
+				$notifications->notify($db,$__identity->uid,$basket_collaborators[$i]->uid,$id,'closed');
+
+			}
+		}
+	}
+
+
+
 
 }else{
 	$last_insert_id=$basket->update_status($db,$id,'open');

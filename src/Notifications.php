@@ -24,6 +24,36 @@ class Notifications
 		return $message;
 	}
 
+	function __changed_category__message($from,$basket_name,$subject){
+
+		$message="{$subject} in basket <u><b>{$basket_name}</b></u>";
+
+		return $message;
+	}
+
+
+	function __changed_description__message($from,$basket_name){
+
+		$message="changed description of <u><b>{$basket_name}</b></u>";
+
+		return $message;
+	}
+
+	function __published_message($from,$basket_name){
+
+		$message="published <u><b>{$basket_name}</b></u>";
+
+		return $message;
+	}
+
+
+	function __closed_message($from,$basket_name){
+
+		$message="Closed <u><b>{$basket_name}</b></u>";
+
+		return $message;
+	}
+
 
 	function get_notifications($db,$id,$page=1){
 
@@ -87,6 +117,26 @@ class Notifications
 				$row->message=self::__uploaded_message($sender_name,$row->name);
 			}
 
+
+			if($row->action==='file_category'){ 
+				$row->message=self::__changed_category__message($sender_name,$row->name,$row->subject);
+			}
+
+
+			if($row->action==='changed_description'){ 
+				$row->message=self::__changed_description__message($sender_name,$row->name);
+			}
+
+
+			if($row->action==='published'){ 
+				$row->message=self::__published_message($sender_name,$row->name);
+			}
+
+			if($row->action==='closed'){ 
+				$row->message=self::__closed_message($sender_name,$row->name);
+			}
+
+
 			$result[]=$row;
 		}
 
@@ -95,5 +145,38 @@ class Notifications
 		return $result;
 
 	}
+
+
+	function notify($db,$sender_uid,$receiver_uid,$basket_id,$action,$subject=''){
+		#start transaction
+		try{
+			$basket_id=htmlentities(htmlspecialchars($basket_id));
+			$sender_id=htmlentities(htmlspecialchars($sender_uid));
+			$receiver_id=htmlentities(htmlspecialchars($receiver_uid));
+			$action=htmlentities(htmlspecialchars($action));
+
+			$db->beginTransaction();
+			
+			$sql='INSERT INTO notifications(basket_id,receiver_id,sender_id,action,subject) values (:basket_id,:receiver_id,:sender_id,:action,:subject)';
+
+
+			$statement=$db->prepare($sql);
+
+			$statement->bindParam(':basket_id',$basket_id);
+			$statement->bindParam(':receiver_id',$receiver_id);
+			$statement->bindParam(':sender_id',$sender_id);
+			$statement->bindParam(':action',$action);
+			$statement->bindParam(':subject',$subject);
+
+			$statement->execute();
+
+			$lastId=(integer)$db->lastInsertId();
+			$db->commit();
+			
+			return $lastId;
+
+		}catch(PDOException $e){echo $e->getMessage();$db->rollback(); echo $e->getMessage();}
+	}
+
 
 }

@@ -4,6 +4,8 @@ header('Access-Control-Allow-Origin: *');
 use SDFT\Token;
 use SDFT\Baskets;
 use SDFT\Activities;
+use SDFT\Notifications;
+use SDFT\Baskets\Collaborators;
 
 
 
@@ -12,6 +14,8 @@ require_once('../../../config/database.php');
 
 @parse_str(file_get_contents("php://input"),$_PUT); 
 
+
+$response['status']=300;
 
 //block if no token in param
 if(!isset($_PUT['token'])||!isset($_PUT['id'])||!isset($_PUT['description'])) exit;
@@ -56,6 +60,33 @@ $last_insert_id=$basket->update_description($db,$id,$description);
 
 if($last_insert_id==1){
 	$response['status']=200;
+
+	/*--------------------------------
+	| Notify Users
+	|--------------------------------*/
+	//get basket information
+	$collaborators=new Collaborators();
+	$notifications=new Notifications();
+
+	$basket_collaborators=($collaborators->get_collaborators($db,$id,$__identity->uid));
+
+
+	//Notify collaborators about the changes
+	if(isset($basket_collaborators[0]->uid)){
+
+		//send only if basket is already published
+		if($basket_collaborators[0]->status!='draft'){
+
+			for ($i=0; $i <count($basket_collaborators) ; $i++) { 
+				
+				//log to database
+				$notifications->notify($db,$__identity->uid,$basket_collaborators[$i]->uid,$id,'changed_description',$description);
+
+			}
+		}
+	}
+
+
 
 }
 
