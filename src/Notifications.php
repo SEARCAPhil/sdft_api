@@ -179,4 +179,14 @@ class Notifications
 	}
 
 
+	function set_read($db,$id){
+		$sql='UPDATE notifications set flag="read" where id=:id';
+		$sth=$db->prepare($sql);
+		$sth->bindValue(':id',$id);
+		$sth->execute();
+
+		return $sth->rowCount();
+	}
+
+
 }

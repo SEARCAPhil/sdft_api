@@ -4,6 +4,7 @@ header('Access-Control-Allow-Origin: *');
 
 use SDFT\Baskets;
 use SDFT\Token;
+use SDFT\Notifications;
 
 
 require_once('../../../vendor/autoload.php');
@@ -29,6 +30,20 @@ if(empty($token)||empty($id)) exit;
 $basket=new Baskets();
 
 $response['details']=($basket->get_details($db,$id)[0]);
+
+
+
+
+/*-------------------------------------------------
+| Clear notification if notfication param exists
+|-----------------------------------------------*/
+
+if(isset($_GET['notification'])&&isset($_GET['notif'])){
+	$notif_id=(int) htmlentities(htmlspecialchars($_GET['notif']));
+	$notifications=new Notifications();
+	//clear notification
+	if(!empty($notif_id)) $notifications->set_read($db,$notif_id);
+}
 
 
 //output in JSON format
