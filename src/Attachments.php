@@ -113,6 +113,19 @@ class Attachments
 	}
 
 
+	function close_all($db,$id,$status='closed'){
+		$sql="UPDATE attachments set status=:status where basket_id=:id";
+		$sth=$db->prepare($sql);
+		$sth->bindParam(':status',$status);
+		$sth->bindParam(':id',$id);
+
+		$sth->execute();
+
+		return $sth->rowCount();
+
+	}
+
+
 }
 
 ?>

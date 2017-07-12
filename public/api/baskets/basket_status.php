@@ -4,6 +4,7 @@ header('Access-Control-Allow-Origin: *');
 use SDFT\Token;
 use SDFT\Baskets;
 use SDFT\Activities;
+use SDFT\Attachments;
 
 
 
@@ -67,6 +68,9 @@ if($status=='close'){
 	//log to database
 	$activities->log_activity($db,$__identity->profile_id,$id,'Closed this basket');
 
+	$attachments=new Attachments();
+	//close all attachments
+	$attachments->close_all($db,$id);
 
 }else{
 	$last_insert_id=$basket->update_status($db,$id,'open');
