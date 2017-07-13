@@ -47,6 +47,18 @@ class Collaborators
 
 	}
 
+	function details($db,$id){
+		$sql="SELECT * from basket_collaborators where id=:id";
+		$sth=$db->prepare($sql);
+		$sth->bindParam(':id',$id);
+		$sth->execute();
+		$result=array();
+		while($row=$sth->fetch(\PDO::FETCH_OBJ)){
+			$result[]=$row;
+		}
+		return $result;
+	}
+
 	function get_collaborators($db,$id,$author_id,$exclude_author=true){
 
 		#get all collaborators for a certain basket,excluding the author of the basket

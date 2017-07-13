@@ -13,7 +13,7 @@ use SDFT\Baskets\Collaborators;
 require_once('../../../vendor/autoload.php');
 require_once('../../../config/database.php');
 
-
+$response['status']=300;
 
 function attach($db,$file,$basket_id,$category_id,$author_id){
 
@@ -114,47 +114,91 @@ if(isset($__identity->id)){
 //must contain files
 if(!isset($_FILES['file']))	exit;
 
+
+
+/*--------------------------------
+| Prevent unauthorized access
+|--------------------------------*/
 //get basket information
 $collaborators=new Collaborators();
-$basket_collaborators=($collaborators->get_collaborators($db,$id,$__identity->uid));
 
-$attachments=new Attachments();
-
+$basket_collaborators=($collaborators->get_collaborators($db,$id,0));
 
 
-$file_id=attach($db,$_FILES['file'],$id,2,$__identity->profile_id);
+$collaborators_array=array();
 
-if($id>0){
-	$response['id']=$file_id;
-	$response['status']=200;
+if(isset($basket_collaborators[0]->uid)){
 
-	$activities=new Activities();
-	$notifications=new Notifications();
+		for ($i=0; $i <count($basket_collaborators); $i++) { 
+			
+			array_push($collaborators_array, $basket_collaborators[$i]->uid);
 
-
-	//log to database
-	$file_name=utf8_encode(htmlentities(htmlspecialchars($_FILES['file']['name'])));
-	$activities->log_activity($db,$__identity->profile_id,$id,'Attached new file '.$file_name);
-
+		}
 	
+}
 
-	//Notify collaborators about the changes
-	if(isset($basket_collaborators[0]->uid)){
 
+#allow them to view if they are collaborators
+if(in_array($__identity->uid,$collaborators_array)){
+
+	$attachments=new Attachments();
+	$file_id=attach($db,$_FILES['file'],$id,2,$__identity->profile_id);
+
+	if($file_id>0){
+		$response['id']=$file_id;
+		$response['status']=200;
+
+		$activities=new Activities();
+		$notifications=new Notifications();
+
+
+		//log to database
+		$file_name=utf8_encode(htmlentities(htmlspecialchars($_FILES['file']['name'])));
+		$activities->log_activity($db,$__identity->profile_id,$id,'Attached new file '.$file_name);
+
+		
 		//send only if basket is already published
 		if($basket_collaborators[0]->status!='draft'){
-			for ($i=0; $i <count($basket_collaborators) ; $i++) { 
+
+			for ($i=0; $i <count($collaborators_array) ; $i++) { 
 				
-				//log to database
-				$notifications->notify($db,$__identity->uid,$basket_collaborators[$i]->uid,$id,'uploaded');
+				//exclude self from notification
+				if($__identity->uid!=$collaborators_array[$i]){
+					//log to database
+					$notifications->notify($db,$__identity->uid,$collaborators_array[$i],$id,'uploaded');
+				}
 
 			}
 		}
 
-		
 	}
 
+
+
+
+}else{
+	//set forbidden
+	$response['error_code']=403;
+	$response['error_message']='Request Forbidden';
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//get basket information
+$collaborators=new Collaborators();
+$basket_collaborators=($collaborators->get_collaborators($db,$id,$__identity->uid));
+
 
 
 echo json_encode($response);

@@ -6,6 +6,7 @@ use SDFT\Baskets;
 use SDFT\Token;
 use SDFT\Attachments;
 use SDFT\Activities;
+use SDFT\Baskets\Collaborators;
 
 
 require_once('../../../vendor/autoload.php');
@@ -62,25 +63,69 @@ $activities=new Activities();
 
 
 //get parent basket
-$parent=$attachments->get_parent_basket($db,$id);
+$parent=$attachments->details($db,$id);
 $basket_id=$parent[0]->basket_id;
 $file_name=$parent[0]->original_filename;
 
-if($status=='closed' || strlen($status)<1){
-	$last_insert_id=$attachments->update_attachment_status($db,$id,'closed');
 
 
-	//log to database
-	$activities->log_activity($db,$__identity->profile_id,$basket_id,'Closed '.$file_name);
+
+
+
+/*--------------------------------
+| Prevent unauthorized access
+|--------------------------------*/
+//get basket information
+$collaborators=new Collaborators();
+
+$basket_collaborators=($collaborators->get_collaborators($db,$basket_id,0));
+
+
+$collaborators_array=array();
+//Notify collaborators about the changes
+if(isset($basket_collaborators[0]->uid)){
+
+		for ($i=0; $i <count($basket_collaborators) ; $i++) { 
+			
+			array_push($collaborators_array, $basket_collaborators[$i]->uid);
+
+		}
+	
+}
+
+$last_insert_id=0;
+
+#allow them to delete if they are collaborators
+if(in_array($__identity->uid,$collaborators_array)){
+
+	if($status=='closed' || strlen($status)<1){
+		$last_insert_id=$attachments->update_attachment_status($db,$id,'closed');
+
+
+		//log to database
+		$activities->log_activity($db,$__identity->profile_id,$basket_id,'Closed '.$file_name);
+
+	}else{
+		$last_insert_id=$attachments->update_attachment_status($db,$id,'open');
+
+
+		//log to database
+		$activities->log_activity($db,$__identity->profile_id,$basket_id,'Open '.$file_name);
+
+	}	
 
 }else{
-	$last_insert_id=$attachments->update_attachment_status($db,$id,'open');
-
-
-	//log to database
-	$activities->log_activity($db,$__identity->profile_id,$basket_id,'Open '.$file_name);
-
+	//set forbidden
+	$response['error_code']=403;
+	$response['error_message']='Request Forbidden';
 }
+
+
+
+
+
+
+
 
 if($last_insert_id==1){
 	$response['status']=200;

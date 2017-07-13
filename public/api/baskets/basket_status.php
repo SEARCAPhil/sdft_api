@@ -24,7 +24,7 @@ if(!isset($_PUT['token'])||!isset($_PUT['id'])) exit;
 $token=htmlentities(htmlspecialchars($_PUT['token']));
 $id=(int) htmlentities(htmlspecialchars($_PUT['id']));
 
-
+$response['status']=300;
 
 //block if token is empty
 if(empty($token)) exit;
@@ -58,57 +58,97 @@ if(isset($__identity->id)){
 //parse status
 $status=@strip_tags(htmlentities(htmlspecialchars($_PUT['status'])));
 
+$last_insert_id=0;
+
+
+
 
 $activities=new Activities();
 $basket=new Baskets();
 
 
+/*--------------------------------
+| Prevent unauthorized access
+|--------------------------------*/
+//get basket information
+$collaborators=new Collaborators();
 
-if($status=='close'){
-	$last_insert_id=$basket->update_status($db,$id,'closed');
-
-	//log to database
-	$activities->log_activity($db,$__identity->profile_id,$id,'Closed this basket');
-
-	$attachments=new Attachments();
-	//close all attachments
-	$attachments->close_all($db,$id);
+$basket_collaborators=($collaborators->get_collaborators($db,$id,0));
 
 
-	/*--------------------------------
-	| Notify Users
-	|--------------------------------*/
-	//get basket information
-	$collaborators=new Collaborators();
-	$notifications=new Notifications();
+$collaborators_array=array();
 
-	$basket_collaborators=($collaborators->get_collaborators($db,$id,$__identity->uid));
+if(isset($basket_collaborators[0]->uid)){
 
+		for ($i=0; $i <count($basket_collaborators); $i++) { 
+			
+			array_push($collaborators_array, $basket_collaborators[$i]->uid);
 
-	//Notify collaborators about the changes
-	if(isset($basket_collaborators[0]->uid)){
-
-		//send only if basket is already published
-		if($basket_collaborators[0]->status!='draft'){
-
-			for ($i=0; $i <count($basket_collaborators) ; $i++) { 
-				
-				//log to database
-				$notifications->notify($db,$__identity->uid,$basket_collaborators[$i]->uid,$id,'closed');
-
-			}
 		}
-	}
+	
+}
 
+
+#allow them to view if they are collaborators
+if(in_array($__identity->uid,$collaborators_array)){
+
+		if($status=='close'){
+			$last_insert_id=$basket->update_status($db,$id,'closed');
+
+			//log to database
+			$activities->log_activity($db,$__identity->profile_id,$id,'Closed this basket');
+
+			$attachments=new Attachments();
+			//close all attachments
+			$attachments->close_all($db,$id);
+
+
+			/*--------------------------------
+			| Notify Users
+			|--------------------------------*/
+		
+			$notifications=new Notifications();
+
+
+
+
+
+				//send only if basket is already published
+				if($basket_collaborators[0]->status!='draft'){
+
+					for ($i=0; $i <count($collaborators_array) ; $i++) { 
+						
+						//exclude self from notification
+						if($__identity->uid!=$collaborators_array[$i]){
+							//log to database
+							$notifications->notify($db,$__identity->uid,$collaborators_array[$i],$id,'closed');
+						}
+
+					}
+				}
+			
+
+
+
+
+		}else{
+			$last_insert_id=$basket->update_status($db,$id,'open');
+
+			//log to database
+			$activities->log_activity($db,$__identity->profile_id,$id,'Open this basket');
+		}
 
 
 
 }else{
-	$last_insert_id=$basket->update_status($db,$id,'open');
-
-	//log to database
-	$activities->log_activity($db,$__identity->profile_id,$id,'Open this basket');
+	//set forbidden
+	$response['error_code']=403;
+	$response['error_message']='Request Forbidden';
 }
+
+
+
+
 
 if($last_insert_id==1){
 	$response['status']=200;

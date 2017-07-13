@@ -6,6 +6,7 @@ use SDFT\Baskets;
 use SDFT\Token;
 use SDFT\Attachments;
 use SDFT\Activities;
+use SDFT\Baskets\Collaborators;
 
 
 require_once('../../../vendor/autoload.php');
@@ -55,11 +56,53 @@ if(isset($__identity->id)){
 $attachments=new Attachments();
 $activities=new Activities();
 
-$is_removed=$attachments->remove($db,$id);
 
 //get parent basket
-$parent=$attachments->get_parent_basket($db,$id);
+$parent=$attachments->details($db,$id);
 $basket_id=$parent[0]->basket_id;
+
+
+
+
+$is_removed=0;
+
+/*--------------------------------
+| Prevent unauthorized access
+|--------------------------------*/
+//get basket information
+$collaborators=new Collaborators();
+
+$basket_collaborators=($collaborators->get_collaborators($db,$basket_id,0));
+
+
+$collaborators_array=array();
+//Notify collaborators about the changes
+if(isset($basket_collaborators[0]->uid)){
+
+		for ($i=0; $i <count($basket_collaborators) ; $i++) { 
+			
+			array_push($collaborators_array, $basket_collaborators[$i]->uid);
+
+		}
+	
+}
+
+
+#allow them to delete if they are collaborators
+if(in_array($__identity->uid,$collaborators_array)){
+
+	$is_removed=$attachments->remove($db,$id);
+
+}else{
+	//set forbidden
+	$response['error_code']=403;
+	$response['error_message']='Request Forbidden';
+}
+
+
+
+
+
 
 
 if($is_removed>0){

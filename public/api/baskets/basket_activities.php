@@ -4,6 +4,7 @@ header('Access-Control-Allow-Origin: *');
 use SDFT\Token;
 use SDFT\Baskets;
 use SDFT\Activities;
+use SDFT\Baskets\Collaborators;
 
 
 
@@ -42,7 +43,45 @@ if(isset($__identity->id)){
 
 	$activities=new Activities();
 	$response['status']=200;
-	$response['activities']=$activities->get_activities($db,$id);
+	
+
+
+
+	/*--------------------------------
+	| Prevent unauthorized access
+	|--------------------------------*/
+	//get basket information
+	$collaborators=new Collaborators();
+
+	$basket_collaborators=($collaborators->get_collaborators($db,$id,0));
+
+
+	$collaborators_array=array();
+	//Notify collaborators about the changes
+	if(isset($basket_collaborators[0]->uid)){
+
+			for ($i=0; $i <count($basket_collaborators) ; $i++) { 
+				
+				array_push($collaborators_array, $basket_collaborators[$i]->uid);
+
+			}
+		
+	}
+
+
+	#allow them to view if they are collaborators
+	if(in_array($__identity->uid,$collaborators_array)){
+
+		$basket=new Baskets();
+		$response['status']=200;
+		$response['activities']=$activities->get_activities($db,$id);
+
+	}else{
+		$response['activities']=array();
+		//set forbidden
+		$response['error_code']=403;
+		$response['error_message']='Request Forbidden';
+	}
 }
 
 

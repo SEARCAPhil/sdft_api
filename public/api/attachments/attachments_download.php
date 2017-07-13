@@ -12,6 +12,7 @@ use SDFT\Baskets;
 use SDFT\Token;
 use SDFT\Attachments;
 use SDFT\Activities;
+use SDFT\Baskets\Collaborators;
 
 
 require_once('../../../vendor/autoload.php');
@@ -101,6 +102,45 @@ if(!isset($_GET['id']))	exit;
 
 $id=(int) htmlentities(htmlspecialchars($_GET['id']));
 
-download($db,$id);
+
+//get parent basket
+$attachments=new Attachments();
+$parent=$attachments->details($db,$id);
+$basket_id=$parent[0]->basket_id;
+$file_name=$parent[0]->original_filename;
+
+
+	/*--------------------------------
+	| Prevent unauthorized access
+	|--------------------------------*/
+	//get basket information
+	$collaborators=new Collaborators();
+
+	$basket_collaborators=($collaborators->get_collaborators($db,$basket_id,0));
+
+
+	$collaborators_array=array();
+
+	if(isset($basket_collaborators[0]->uid)){
+
+			for ($i=0; $i <count($basket_collaborators); $i++) { 
+				
+				array_push($collaborators_array, $basket_collaborators[$i]->uid);
+
+			}
+		
+	}
+
+
+	#allow them to view if they are collaborators
+	if(in_array($__identity->uid,$collaborators_array)){
+
+		download($db,$id);
+
+	}else{
+		echo 'File not found!This will automatically close after 5 seconds.<script>setTimeout(function(){window.close();},5000);</script>';
+	}
+
+
 
 ?>

@@ -43,22 +43,53 @@ if(isset($__identity->id)){
 }
 
 
-//Collaborators
+/*--------------------------------
+| Prevent unauthorized access
+|--------------------------------*/
+//get basket information
 $collaborators=new Collaborators();
 
-#save collaborator
+
+$basket_collaborators=($collaborators->get_collaborators($db,$id,0));
+
+
+$collaborators_array=array();
 $saved=array();
-foreach ($collaborators_list as $key => $value) {
-	if(strlen($value)>0){
-		$result=$collaborators->create($db,$id,(int) $key);
-		if($result>0){
-			$saved[$key]=$result;
-		}else{
-			$saved[$key]=null;
+
+if(isset($basket_collaborators[0]->uid)){
+
+		for ($i=0; $i <count($basket_collaborators); $i++) { 
+			
+			array_push($collaborators_array, $basket_collaborators[$i]->uid);
+
 		}
-		
-	}
+	
 }
+
+
+#allow them to view if they are collaborators
+if(in_array($__identity->uid,$collaborators_array)){
+	#save collaborator
+	$saved=array();
+	foreach ($collaborators_list as $key => $value) {
+		if(strlen($value)>0){
+			$result=$collaborators->create($db,$id,(int) $key);
+			if($result>0){
+				$saved[$key]=$result;
+			}else{
+				$saved[$key]=null;
+			}
+			
+		}
+	}	
+
+}else{
+	//set forbidden
+	$response['error_code']=403;
+	$response['error_message']='Request Forbidden';
+}
+
+
 
 if(count($saved)>0){
 	$response['status']=200;

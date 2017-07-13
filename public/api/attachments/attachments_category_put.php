@@ -26,7 +26,7 @@ $id=(int) htmlentities(htmlspecialchars($_PUT['id']));
 $category=(int) htmlentities(htmlspecialchars($_PUT['category']));
 
 
-
+$response['status']=300;
 
 //Block if token is empty
 if(empty($token)) exit;
@@ -73,13 +73,58 @@ $parent=$attachments->details($db,$id);
 $basket_id=$parent[0]->basket_id;
 $file_name=$parent[0]->original_filename;
 
-//get the new category details
-$new_category=$attachments->get_attachment_category($db,$category);
+
+
+	/*--------------------------------
+	| Prevent unauthorized access
+	|--------------------------------*/
+	//get basket information
+	$collaborators=new Collaborators();
+
+	$basket_collaborators=($collaborators->get_collaborators($db,$basket_id,0));
+
+
+	$collaborators_array=array();
+
+	if(isset($basket_collaborators[0]->uid)){
+
+			for ($i=0; $i <count($basket_collaborators); $i++) { 
+				
+				array_push($collaborators_array, $basket_collaborators[$i]->uid);
+
+			}
+		
+	}
+
+
+	$new_category='';
+
+	#allow them to view if they are collaborators
+	if(in_array($__identity->uid,$collaborators_array)){
+
+		//get the new category details
+		$new_category=$attachments->get_attachment_category($db,$category);
+
+	}else{
+		$response['details']=array();
+		//set forbidden
+		$response['error_code']=403;
+		$response['error_message']='Request Forbidden';
+	}
+
+
+
+
+
+
+
 
 //do not update if new category is empty
-if(strlen($new_category)<1) exit;
 
-if($category>1){
+
+
+if($category>1&&strlen($new_category)>1){
+
 	$last_insert_id=$attachments->update_attachment_category($db,$id,$category);
 
 	//log to database
@@ -92,29 +137,21 @@ if($category>1){
 	| Notify Users
 	|--------------------------------*/
 	//get basket information
-	$collaborators=new Collaborators();
+
 	$notifications=new Notifications();
-
-	$basket_collaborators=($collaborators->get_collaborators($db,$basket_id,$__identity->uid));
-
-
-	//Notify collaborators about the changes
-	if(isset($basket_collaborators[0]->uid)){
 
 		//send only if basket is already published
 		if($basket_collaborators[0]->status!='draft'){
 
-			for ($i=0; $i <count($basket_collaborators) ; $i++) { 
+			for ($i=0; $i <count($collaborators_array); $i++) { 
 				
-				//log to database
-				$notifications->notify($db,$__identity->uid,$basket_collaborators[$i]->uid,$basket_id,'file_category','Set category of '.$file_name. ' to '.$new_category);
+				if($collaborators_array[$i]!=$__identity->uid){
+					//log to database
+					$notifications->notify($db,$__identity->uid,$collaborators_array[$i],$basket_id,'file_category','Set category of '.$file_name. ' to '.$new_category);
+				}
 
 			}
 		}
-	}
-
-
-
 
 
 }

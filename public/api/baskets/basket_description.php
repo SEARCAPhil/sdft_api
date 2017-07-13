@@ -51,44 +51,87 @@ if(isset($__identity->id)){
 }
 
 
+$last_insert_id=0;
 
-$basket=new Baskets();
+/*--------------------------------
+| Prevent unauthorized access
+|--------------------------------*/
+//get basket information
+$collaborators=new Collaborators();
 
-$last_insert_id=$basket->update_description($db,$id,$description);
+$basket_collaborators=($collaborators->get_collaborators($db,$id,0));
+
+
+$collaborators_array=array();
+
+if(isset($basket_collaborators[0]->uid)){
+
+		for ($i=0; $i <count($basket_collaborators); $i++) { 
+			
+			array_push($collaborators_array, $basket_collaborators[$i]->uid);
+
+		}
+	
+}
+
+
+#allow them to view if they are collaborators
+if(in_array($__identity->uid,$collaborators_array)){
+
+	$basket=new Baskets();
+
+	$last_insert_id=$basket->update_description($db,$id,$description);	
+
+}else{
+		//set forbidden
+	$response['error_code']=403;
+	$response['error_message']='Request Forbidden';
+}
+
+
+
+
+
+
+
+
 
 
 
 if($last_insert_id==1){
 	$response['status']=200;
 
+	$activities=new Activities();
+
+	//log to database
+	$activities->log_activity($db,$__identity->profile_id,$id,'changed the description of this basket');
+
+
 	/*--------------------------------
 	| Notify Users
 	|--------------------------------*/
 	//get basket information
-	$collaborators=new Collaborators();
 	$notifications=new Notifications();
 
-	$basket_collaborators=($collaborators->get_collaborators($db,$id,$__identity->uid));
 
+	//send only if basket is already published
+	if($basket_collaborators[0]->status!='draft'){
 
-	//Notify collaborators about the changes
-	if(isset($basket_collaborators[0]->uid)){
-
-		//send only if basket is already published
-		if($basket_collaborators[0]->status!='draft'){
-
-			for ($i=0; $i <count($basket_collaborators) ; $i++) { 
-				
+		for ($i=0; $i <count($collaborators_array) ; $i++) { 
+			
+			//exclude self from notification
+			if($__identity->uid!=$collaborators_array[$i]){
 				//log to database
 				$notifications->notify($db,$__identity->uid,$basket_collaborators[$i]->uid,$id,'changed_description',$description);
-
 			}
+
 		}
 	}
 
 
 
 }
+
 
 echo json_encode($response);
 
