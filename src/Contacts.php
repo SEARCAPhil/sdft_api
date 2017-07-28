@@ -8,6 +8,25 @@ class Contacts
 {
 	
 	function __construct(){}
+	function get_profile($db,$id){
+		try{
+			$sql='SELECT account_profile.id,account_profile.profile_name,account_profile.last_name,account_profile.first_name,account_profile.department,account_profile.department_alias as alias, account_profile.position, account_profile.profile_image as image, account_profile.profile_email as email FROM  account_profile  where account_profile.id=:id';
+
+			$sth=$db->prepare($sql);
+			$sth->bindParam(':id',$id);
+			$sth->execute();
+
+			$result=array();
+
+			while($row=$sth->fetch(\PDO::FETCH_OBJ)){
+				$result[]=$row;
+			}
+
+
+			return $result;
+		}catch(Exception $e){}
+	}
+
 	function get_contacts_by_department($db,$page=1){
 
 		try{

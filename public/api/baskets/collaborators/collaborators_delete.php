@@ -3,6 +3,8 @@ header('Access-Control-Allow-Origin: *');
 
 use SDFT\Baskets\Collaborators as Collaborators;
 use SDFT\Token;
+use SDFT\Activities;
+use SDFT\Contacts;
 
 require_once('../../../../vendor/autoload.php');
 require_once('../../../../config/database.php');
@@ -91,6 +93,20 @@ if(in_array($__identity->uid,$collaborators_array)){
 if($is_removed>0){
 	$response['status']=200;
 	$response['id']=$is_removed;
+
+	$Contacts=new Contacts();
+
+	$collaborator_info=($Contacts->get_profile($db,$parent[0]->profile_id));
+
+	if(isset($collaborator_info[0]->id)){
+		$name=strlen($collaborator_info[0]->profile_name)<2?$collaborator_info[0]->first_name.' '.$collaborator_info[0]->last_name:$collaborator_info[0]->profile_name;
+
+		//log to database
+		$activities=new Activities();
+		$activities->log_activity($db,$__identity->profile_id,$basket_id,'Removed '.$name.' from this basket');
+	}
+
+	
 }
 
 
