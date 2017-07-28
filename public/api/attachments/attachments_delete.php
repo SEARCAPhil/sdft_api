@@ -101,6 +101,16 @@ if(in_array($__identity->uid,$collaborators_array)){
 
 
 
+//rename file
+if(file_exists($_SERVER['DOCUMENT_ROOT'].'/sdft_api/public/uploads/'.$basket_id.'/'.$parent[0]->filename)){
+
+	@rename($_SERVER['DOCUMENT_ROOT'].'/sdft_api/public/uploads/'.$basket_id.'/'.$parent[0]->filename,$_SERVER['DOCUMENT_ROOT'].'/sdft_api/public/uploads/'.$basket_id.'/'.$parent[0]->filename.'.deleted');
+	
+
+}
+
+
+
 
 
 

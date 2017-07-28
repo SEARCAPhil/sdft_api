@@ -95,6 +95,18 @@ if(in_array($__identity->uid,$collaborators_array)){
 
 
 
+//changed name of deleted basket
+if($is_removed>0){
+	if(is_dir($_SERVER['DOCUMENT_ROOT'].'/sdft_api/public/uploads/'.$id.'/')){
+		
+		
+		rename($_SERVER['DOCUMENT_ROOT'].'/sdft_api/public/uploads/'.$id.'/',$_SERVER['DOCUMENT_ROOT'].'/sdft_api/public/uploads/'.$id.'-deleted');
+	}
+}
+
+
+
+
 
 
 if($is_removed>0){
