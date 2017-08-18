@@ -4,15 +4,16 @@ namespace SDFT;
 /**
 * 
 */
-class Authentication
+class AuthenticationOffice365
 {
 	
 	function __construct(){}
 
-	function account_exists_in_local($db,$username){
-		$sql="SELECT * FROM account where username=:username ORDER BY id DESC LIMIT 1";
+	function account_exists_in_local($db,$username,$uid){
+		$sql="SELECT * FROM account where username=:username and uid=:uid ORDER BY id DESC LIMIT 1";
 		$sth=$db->prepare($sql);
 		$sth->bindParam(':username',$username);
+		$sth->bindParam(':uid',$uid);
 		$sth->execute();
 		$result=array();
 
@@ -35,9 +36,9 @@ class Authentication
 	}
 
 
-	function create_local_profile($db,$uid,$full_name,$last_name,$first_name,$image,$department,$alias,$position,$date_modified){
+	function create_local_profile($db,$uid,$full_name,$last_name,$first_name,$image,$department,$alias,$position,$date_modified,$email){
 				
-		$sql="INSERT INTO account_profile(profile_name,last_name,first_name,profile_image,department,department_alias,position,date_modified,uid)values(:profile_name,:last_name,:first_name,:profile_image,:department,:department_alias,:position,:date_modified,:uid)";
+		$sql="INSERT INTO account_profile(profile_name,last_name,first_name,profile_image,department,department_alias,position,date_modified,profile_email,uid)values(:profile_name,:last_name,:first_name,:profile_image,:department,:department_alias,:position,:date_modified,:email,:uid)";
 
 		$sth=$db->prepare($sql);
 		$sth->bindParam(':profile_name',$full_name);
@@ -48,6 +49,7 @@ class Authentication
 		$sth->bindParam(':department_alias',$alias);
 		$sth->bindParam(':position',$position);
 		$sth->bindParam(':date_modified',$date_modified);
+		$sth->bindParam(':email',$email);
 		$sth->bindParam(':uid',$uid);
 		$sth->execute();
 
@@ -70,7 +72,6 @@ class Authentication
 		
 		return $db->lastInsertId();
 	}
-
 
 
 	function get_local_profile($db,$uid){

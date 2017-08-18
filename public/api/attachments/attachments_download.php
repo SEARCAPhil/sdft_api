@@ -89,9 +89,9 @@ $ip=$_SERVER['REMOTE_ADDR'];
 
 if(isset($__identity->id)){
 	//check current ip address if the same with identity IP
-	if(!filter_var($ip,FILTER_VALIDATE_IP)==TRUE) exit;
+//	if(!filter_var($ip,FILTER_VALIDATE_IP)==TRUE) exit;
 
-	if(filter_var($ip,FILTER_VALIDATE_IP)!=$__identity->ip_address) exit;
+//	if(filter_var($ip,FILTER_VALIDATE_IP)!=$__identity->ip_address) exit;
 
 }
 

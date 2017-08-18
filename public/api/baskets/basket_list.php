@@ -42,7 +42,6 @@ $__identity=$token_class->get_token($db,$token);
 $ip=$_SERVER['REMOTE_ADDR'];
 
 
-
 if(isset($__identity->id)){
 
 	//check current ip address if the same with identity IP
