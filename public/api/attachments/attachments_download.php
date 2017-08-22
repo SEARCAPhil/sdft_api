@@ -1,10 +1,10 @@
 <?php
 header('Access-Control-Allow-Origin: *');
-@ini_set('zlib.output_compression', 'Off');
+/*@ini_set('zlib.output_compression', 'Off');
 @ini_set('output_buffering', 'Off');
 @ini_set('output_handler', '');
-@apache_setenv('no-gzip', 1);
-	session_start();
+@apache_setenv('no-gzip', 1);*/
+session_start();
 
 
 
