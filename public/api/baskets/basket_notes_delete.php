@@ -75,7 +75,7 @@ if(isset($__identity->id)){
 
 
 	#allow them to view if they are collaborators
-	if(in_array($__identity->uid,$collaborators_array)){
+	if(in_array($__identity->uid,$collaborators_array)&&$basket_collaborators[0]->status!='closed'){
 	//create new basket
 		$notes=new Notes();
 

@@ -73,7 +73,7 @@ $collaborators_profile=array();
 
 $Contacts=new Contacts();
 #allow them to add if they are collaborators
-if(in_array($__identity->uid,$collaborators_array)){
+if(in_array($__identity->uid,$collaborators_array)&&($basket_collaborators[0]->status!='closed')){
 	#save collaborator
 	$saved=array();
 	foreach ($collaborators_list as $key => $value) {

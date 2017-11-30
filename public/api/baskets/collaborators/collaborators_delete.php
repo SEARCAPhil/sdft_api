@@ -77,7 +77,7 @@ if(isset($basket_collaborators[0]->uid)){
 
 
 #allow them to view if they are collaborators
-if(in_array($__identity->uid,$collaborators_array)&&$basket_collaborators[0]->status=='open'){
+if(in_array($__identity->uid,$collaborators_array)&&$basket_collaborators[0]->status!='closed'){
 
 	$is_removed=$collaborators->remove($db,$id);
 

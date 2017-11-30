@@ -138,8 +138,8 @@ if(isset($basket_collaborators[0]->uid)){
 }
 
 
-#allow them to view if they are collaborators
-if(in_array($__identity->uid,$collaborators_array)){
+#allow them to view if they are collaborators but not yet closed
+if(in_array($__identity->uid,$collaborators_array)&&($basket_collaborators[0]->status!='closed')){
 
 	$attachments=new Attachments();
 	$file_id=attach($db,$_FILES['file'],$id,2,$__identity->profile_id);
@@ -157,7 +157,7 @@ if(in_array($__identity->uid,$collaborators_array)){
 		$activities->log_activity($db,$__identity->profile_id,$id,'Attached new file '.$file_name);
 
 		
-		//send only if basket is already published
+		//send only if basket is already published 
 		if($basket_collaborators[0]->status!='draft'){
 
 			for ($i=0; $i <count($collaborators_array) ; $i++) { 

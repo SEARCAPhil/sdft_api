@@ -100,7 +100,7 @@ $file_name=$parent[0]->original_filename;
 	$new_category='';
 
 	#allow them to view if they are collaborators
-	if(in_array($__identity->uid,$collaborators_array)){
+	if(in_array($__identity->uid,$collaborators_array)&&(@$parent[0]->status!='closed')){
 
 		//get the new category details
 		$new_category=$attachments->get_attachment_category($db,$category);

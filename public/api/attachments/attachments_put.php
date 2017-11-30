@@ -20,6 +20,7 @@ if(!isset($_PUT['token'])||!isset($_PUT['id'])) exit;
 
 $token=htmlentities(htmlspecialchars($_PUT['token']));
 $id=(int) htmlentities(htmlspecialchars($_PUT['id']));
+$response=array();
 
 
 
@@ -106,11 +107,13 @@ if(in_array($__identity->uid,$collaborators_array)){
 		$activities->log_activity($db,$__identity->profile_id,$basket_id,'Closed '.$file_name);
 
 	}else{
-		$last_insert_id=$attachments->update_attachment_status($db,$id,'open');
+		//removed from specs
+		//prevent users from opening baskets that are already closed
+		#$last_insert_id=$attachments->update_attachment_status($db,$id,'open');
 
 
 		//log to database
-		$activities->log_activity($db,$__identity->profile_id,$basket_id,'Open '.$file_name);
+		#$activities->log_activity($db,$__identity->profile_id,$basket_id,'Open '.$file_name);
 
 	}	
 

@@ -66,6 +66,7 @@ $last_insert_id=0;
 
 $activities=new Activities();
 $basket=new Baskets();
+$parent=$basket->get_details($db,$id);
 
 
 /*--------------------------------
@@ -91,7 +92,7 @@ if(isset($basket_collaborators[0]->uid)){
 
 
 #allow them to view if they are collaborators
-if(in_array($__identity->uid,$collaborators_array)){
+if(in_array($__identity->uid,$collaborators_array)&&(@$parent[0]->status!='closed')){
 
 		
 		$last_insert_id=$basket->update_keywords($db,$id,$keywords);
