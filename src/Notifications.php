@@ -11,7 +11,7 @@ class Notifications
 
 	function __added_as_collaborator_message($from,$basket_name){
 
-		$message="added you to <b>{$basket_name}</b>";
+		$message="Added you to <b>{$basket_name}</b>";
 
 		return $message;
 	}
@@ -19,7 +19,7 @@ class Notifications
 
 	function __uploaded_message($from,$basket_name){
 
-		$message="added new attachment to <b>{$basket_name}</b>";
+		$message="Added new attachment to <b>{$basket_name}</b>";
 
 		return $message;
 	}
@@ -34,14 +34,14 @@ class Notifications
 
 	function __changed_description__message($from,$basket_name){
 
-		$message="changed description of <u><b>{$basket_name}</b></u>";
+		$message="Changed description of <u><b>{$basket_name}</b></u>";
 
 		return $message;
 	}
 
 	function __published_message($from,$basket_name){
 
-		$message="published <u><b>{$basket_name}</b></u>";
+		$message="Published <u><b>{$basket_name}</b></u>";
 
 		return $message;
 	}
@@ -50,6 +50,14 @@ class Notifications
 	function __closed_message($from,$basket_name){
 
 		$message="Closed <u><b>{$basket_name}</b></u>";
+
+		return $message;
+	}
+
+
+	function __post_notes_message($from,$basket_name){
+
+		$message="Posted a note in <u><b>{$basket_name}</b></u>";
 
 		return $message;
 	}
@@ -134,6 +142,10 @@ class Notifications
 
 			if($row->action==='closed'){ 
 				$row->message=self::__closed_message($sender_name,$row->name);
+			}
+
+			if($row->action==='notes'){ 
+				$row->message=self::__post_notes_message($sender_name,$row->name);
 			}
 
 

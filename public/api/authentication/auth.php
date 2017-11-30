@@ -52,7 +52,7 @@ $uuid=isset($_POST['uuid'])?htmlentities(htmlspecialchars($_POST['uuid'])):NULL;
 | **authentication must be done via OAuth in the near future**
 |-----------------------------------------------------------------*/
 
-$db_account=new PDO('mysql:host=127.0.0.1;dbname=rfp_db','root');
+$db_account=new PDO('mysql:host=127.0.0.1;dbname=sdft','root');
 $db_account->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
 
 

@@ -263,6 +263,19 @@ class Baskets
 	}
 
 
+	function update_keywords($db,$id,$keywords){
+		$sql="UPDATE basket set keywords=:keywords where id=:id";
+		$sth=$db->prepare($sql);
+		$sth->bindParam(':keywords',$keywords);
+		$sth->bindParam(':id',$id);
+
+		$sth->execute();
+
+		return $sth->rowCount();
+
+	}
+
+
 	function search($db,$id,$param,$status='open',$page=1){
 
 		define("LIMIT",30);

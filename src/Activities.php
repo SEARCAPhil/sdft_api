@@ -12,9 +12,9 @@ class Activities
 	function log_activity($db,$author_id,$basket_id,$message){
 		#start transaction
 		try{
-			$basket_id=htmlentities(htmlspecialchars($basket_id));
-			$author_id=htmlentities(htmlspecialchars($author_id));
-			$message=htmlentities(htmlspecialchars($message));
+			$basket_id=(int) utf8_encode(trim($basket_id));
+			$author_id=(int) utf8_encode(trim($author_id));
+			$message=utf8_encode(trim($message));
 
 			$db->beginTransaction();
 			
