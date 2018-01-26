@@ -41,6 +41,8 @@ class Categories
 		$result=array();
 
 		while($row=$sth->fetch(\PDO::FETCH_OBJ)){
+			$row->category=utf8_encode($row->category);
+			$row->name=utf8_encode($row->name);
 			$result[]=$row;
 		}
 

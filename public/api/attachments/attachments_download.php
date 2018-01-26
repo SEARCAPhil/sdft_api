@@ -35,7 +35,23 @@ function download($db,$id){
 			$attach_statement->execute();
 			if($row=$attach_statement->fetch(PDO::FETCH_OBJ)){
 
-					if(file_exists($_SERVER['DOCUMENT_ROOT'].'/sdft_api/public/uploads/'.$row->basket_id.'/'.$row->filename)){
+					$basket_id = $row->basket_id;
+
+					if(!is_null($row->original_copy_id)){
+						//original copy informatoin
+						$attach_sql2="SELECT attachments.* from attachments left join basket on basket.id=attachments.basket_id where attachments.id=:id";
+						$attach_statement2=$db->prepare($attach_sql2);
+						$attach_statement2->bindParam(':id',$row->original_copy_id);
+						$attach_statement2->execute();
+
+						if($row2=$attach_statement2->fetch(PDO::FETCH_OBJ)){
+							
+							//origina basket where file is located on the server
+							$basket_id = $row2->basket_id;
+						}
+					}
+				
+					if(file_exists($_SERVER['DOCUMENT_ROOT'].'/sdft_api/public/uploads/'.$basket_id.'/'.$row->filename)){
 						$file_exists=1;
 						#headers to force download
 						$returnFile=header("Content-Description: File Transfer"); 
@@ -43,7 +59,7 @@ function download($db,$id){
 						$returnFile.=header("Content-Disposition: attachment; filename=\"$row->filename\"");
 						$returnFile.=ob_clean();
 						$returnFile.=flush();
-						$returnFile.=readfile ($_SERVER['DOCUMENT_ROOT'].'/sdft_api/public/uploads/'.$row->basket_id.'/'.$row->filename);	
+						$returnFile.=readfile ($_SERVER['DOCUMENT_ROOT'].'/sdft_api/public/uploads/'.$basket_id.'/'.$row->filename);	
 					}
 			}
 

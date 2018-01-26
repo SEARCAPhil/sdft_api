@@ -9,7 +9,7 @@ class Attachments
 	
 	function __construct(){}
 
-	function create($db,$basket_id,$category_id,$author_id,$type,$old_filename,$new_filename,$size=0){
+	function create($db,$basket_id,$category_id,$author_id,$type,$old_filename,$new_filename,$size=0,$copy='original',$original_copy_id=NULL){
 		#start transaction
 		try{
 				$basket_id=htmlentities(htmlspecialchars($basket_id));
@@ -18,12 +18,14 @@ class Attachments
 				$profile_id=htmlentities(htmlspecialchars($author_id));
 				$type=htmlentities(htmlspecialchars($type));
 				$file_size=htmlentities(htmlspecialchars($size));
+				$copy=htmlentities(htmlspecialchars($copy));
+				$orig_copy_id=htmlentities(htmlspecialchars($original_copy_id));
 
 				
 
 				$db->beginTransaction();
 				$utf8_filename=utf8_encode($old_filename);
-				$attach_sql='INSERT INTO attachments(filename,original_filename,size,type,basket_id,profile_id,category_id) values (:filename,:original_filename,:size,:type,:basket_id,:profile_id,:category_id)';
+				$attach_sql='INSERT INTO attachments(filename,original_filename,size,type,basket_id,profile_id,category_id,copy,original_copy_id) values (:filename,:original_filename,:size,:type,:basket_id,:profile_id,:category_id,:copy,:original_copy_id)';
 
 		
 				$attach_statement=$db->prepare($attach_sql);
@@ -35,6 +37,8 @@ class Attachments
 				$attach_statement->bindParam(':basket_id',$basket_id);
 				$attach_statement->bindParam(':profile_id',$profile_id);
 				$attach_statement->bindParam(':category_id',$category_id);
+				$attach_statement->bindParam(':copy',$copy);
+				$attach_statement->bindParam(':original_copy_id',$original_copy_id);
 
 				$attach_statement->execute();
 
