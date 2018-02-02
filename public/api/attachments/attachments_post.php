@@ -142,7 +142,7 @@ if(isset($basket_collaborators[0]->uid)){
 if(in_array($__identity->uid,$collaborators_array)&&($basket_collaborators[0]->status!='closed')){
 
 	$attachments=new Attachments();
-	$file_id=attach($db,$_FILES['file'],$id,2,$__identity->profile_id);
+	$file_id=attach($db,$_FILES['file'],$id,null,$__identity->profile_id);
 
 	if($file_id>0){
 		$response['id']=$file_id;
