@@ -1,5 +1,9 @@
 <?php
 namespace SDFT;
+use SDFT\Attachments\Comments;
+
+require_once('../../../vendor/autoload.php');
+
 
 /**
 * 
@@ -115,7 +119,7 @@ class Baskets
 				$basket->author=($row2);
 			}
 
-			$basket->attachments=self::get_attachments($db,$id);
+			$basket->attachments=self::get_attachments($db,$id,true);
 
 			$result[]=$basket;
 		}
@@ -129,7 +133,7 @@ class Baskets
 
 
 
-	function get_attachments($db,$id){
+	function get_attachments($db,$id,$comments=false){
 
 		$sql='SELECT attachments.id,filename as unique_name,original_filename as name,date_created,status,account_profile.uid,profile_id,basket_id,attachments.type,basket_category.category,attachments.size,profile_name,first_name,last_name,department_alias as alias,department,position,profile_image as image, attachments.date_modified from attachments LEFT JOIN account_profile on account_profile.id=attachments.profile_id LEFT JOIN basket_category on category_id=basket_category.id where basket_id=:id and attachments.is_deleted=0 ORDER BY attachments.date_modified DESC';
 
@@ -173,6 +177,13 @@ class Baskets
 			$file['date_modified']=$row->date_modified;
 
 			$data=array('files'=>$file,'author'=>$author);
+
+			if($comments){
+				$com = new Comments();
+				$data['comments'] = $com->get_comments($db,$row->id);
+			}
+
+
 			$results[]=$data;
 		}
 
@@ -288,15 +299,15 @@ class Baskets
 		$param='%'.$param.'%';
 
 		if($status=='open'||$status=='closed'){
-			$sql='SELECT basket.id,basket.description,basket_category.category,basket.default_route,basket.current_route,basket.status,basket.date_created,basket.date_modified,basket_name as name,account_profile.uid as collaborators_id,account_profile.id as collaborators_profile_id,account_profile.profile_name,account_profile.last_name,account_profile.first_name,account_profile.department,account_profile.position,account_profile.department_alias as alias,account_profile.profile_image as image,basket.profile_id as author_profile_id FROM basket_collaborators LEFT JOIN account_profile on account_profile.id=basket_collaborators.profile_id LEFT JOIN basket on basket_collaborators.basket_id=basket.id LEFT JOIN basket_category on basket.category=basket_category.id where (account_profile.uid=:uid and basket.status=:status and basket.is_deleted=0) and (basket.basket_name LIKE :param OR basket.description LIKE :param OR basket.keywords LIKE :param)  ORDER BY date_modified DESC LIMIT :start_page,:LIMITS';	
+			$sql='SELECT attachments.original_filename,basket.id,basket.description,basket_category.category,basket.default_route,basket.current_route,basket.status,basket.date_created,basket.date_modified,basket_name as name,account_profile.uid as collaborators_id,account_profile.id as collaborators_profile_id,account_profile.profile_name,account_profile.last_name,account_profile.first_name,account_profile.department,account_profile.position,account_profile.department_alias as alias,account_profile.profile_image as image,basket.profile_id as author_profile_id FROM basket_collaborators LEFT JOIN account_profile on account_profile.id=basket_collaborators.profile_id LEFT JOIN basket on basket_collaborators.basket_id=basket.id LEFT JOIN basket_category on basket.category=basket_category.id LEFT JOIN attachments on attachments.basket_id=basket.id where (account_profile.uid=:uid and basket.status=:status and basket.is_deleted=0) and (basket.basket_name LIKE :param OR basket.description LIKE :param OR basket.keywords LIKE :param OR attachments.original_filename LIKE :param)  ORDER BY date_modified DESC LIMIT :start_page,:LIMITS';	
 		}else{
-			$sql="SELECT basket.id,basket.description,basket_category.category,basket.default_route,basket.current_route,basket.status,basket.date_created,basket.date_modified,basket_name as name,account_profile.uid as collaborators_id,account_profile.id as collaborators_profile_id,account_profile.profile_name,account_profile.last_name,account_profile.first_name,account_profile.department,account_profile.position,account_profile.department_alias as alias,account_profile.profile_image as image,basket.profile_id as author_profile_id FROM basket_collaborators LEFT JOIN account_profile on account_profile.id=basket_collaborators.profile_id LEFT JOIN basket on basket_collaborators.basket_id=basket.id LEFT JOIN basket_category on basket.category=basket_category.id where (account_profile.uid=:uid and basket.status!='draft' and basket.is_deleted=0) and (basket.basket_name LIKE :param OR basket.description LIKE :param OR basket.keywords LIKE :param) ORDER BY date_modified DESC LIMIT :start_page,:LIMITS";		
+			$sql="SELECT attachments.original_filename,basket.id,basket.description,basket_category.category,basket.default_route,basket.current_route,basket.status,basket.date_created,basket.date_modified,basket_name as name,account_profile.uid as collaborators_id,account_profile.id as collaborators_profile_id,account_profile.profile_name,account_profile.last_name,account_profile.first_name,account_profile.department,account_profile.position,account_profile.department_alias as alias,account_profile.profile_image as image,basket.profile_id as author_profile_id FROM basket_collaborators LEFT JOIN account_profile on account_profile.id=basket_collaborators.profile_id LEFT JOIN basket on basket_collaborators.basket_id=basket.id LEFT JOIN basket_category on basket.category=basket_category.id LEFT JOIN attachments on attachments.basket_id=basket.id where (account_profile.uid=:uid and basket.status!='draft' and basket.is_deleted=0) and (basket.basket_name LIKE :param OR basket.description LIKE :param OR basket.keywords LIKE :param OR attachments.original_filename LIKE :param) ORDER BY date_modified DESC LIMIT :start_page,:LIMITS";		
 		}
 
 
 		//if draft
 		if($status=='draft'){
-			$sql="SELECT basket.id,basket.description,basket_category.category,basket.default_route,basket.current_route,basket.status,basket.date_created,basket.date_modified,basket_name as name,account_profile.uid as collaborators_id,account_profile.id as collaborators_profile_id,account_profile.profile_name,account_profile.last_name,account_profile.first_name,account_profile.department,account_profile.position,account_profile.department_alias as alias,account_profile.profile_image as image,basket.profile_id as author_profile_id FROM basket_collaborators LEFT JOIN account_profile on account_profile.id=basket_collaborators.profile_id LEFT JOIN basket on basket_collaborators.basket_id=basket.id LEFT JOIN basket_category on basket.category=basket_category.id where (account_profile.uid=:uid and basket.status='draft' and basket.is_deleted=0) and (basket.basket_name LIKE :param OR basket.description LIKE :param OR basket.keywords LIKE :param)  ORDER BY date_modified DESC LIMIT :start_page,:LIMITS";
+			$sql="SELECT attachments.original_filename,basket.id,basket.description,basket_category.category,basket.default_route,basket.current_route,basket.status,basket.date_created,basket.date_modified,basket_name as name,account_profile.uid as collaborators_id,account_profile.id as collaborators_profile_id,account_profile.profile_name,account_profile.last_name,account_profile.first_name,account_profile.department,account_profile.position,account_profile.department_alias as alias,account_profile.profile_image as image,basket.profile_id as author_profile_id FROM basket_collaborators LEFT JOIN account_profile on account_profile.id=basket_collaborators.profile_id LEFT JOIN basket on basket_collaborators.basket_id=basket.id LEFT JOIN basket_category on basket.category=basket_category.id  LEFT JOIN attachments on attachments.basket_id=basket.id  where (account_profile.uid=:uid and basket.status='draft' and basket.is_deleted=0) and (basket.basket_name LIKE :param OR basket.description LIKE :param OR basket.keywords LIKE :param OR attachments.original_filename LIKE :param)  ORDER BY date_modified DESC LIMIT :start_page,:LIMITS";
 		}
 
 

@@ -63,6 +63,28 @@ class Notifications
 	}
 
 
+	function __received_basket_message($from,$basket_name){
+
+		$message="Received <u><b>{$basket_name}</b></u>";
+
+		return $message;
+	}
+
+	function __sent_basket_message($from,$basket_name){
+
+		$message="Sent <u><b>{$basket_name}</b></u>";
+
+		return $message;
+	}
+
+	function __comment_message($from,$basket_name,$subject){
+
+		$message="Commented in basket <u><b>{$basket_name}</b></u><br/>\"{$subject}\"";
+
+		return $message;
+	}
+
+
 	function get_notifications($db,$id,$page=1){
 
 		define("LIMIT",30);
@@ -148,8 +170,22 @@ class Notifications
 				$row->message=self::__post_notes_message($sender_name,$row->name);
 			}
 
+			if($row->action==='route_in'){ 
+				$row->message=self::__received_basket_message($sender_name,$row->name);
+			}
 
-			$result[]=$row;
+			if($row->action==='route_out'){ 
+				$row->message=self::__sent_basket_message($sender_name,$row->name);
+			}
+
+			if($row->action==='comment'){ 
+				$row->message=self::__comment_message($sender_name,$row->name,$row->subject);
+			}
+
+
+
+			//non empty message
+			if(!empty($row->message)) $result[]=$row;
 		}
 
 		
