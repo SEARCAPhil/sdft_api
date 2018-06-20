@@ -49,13 +49,14 @@ $device_uuid=isset($_POST['uuid'])?htmlentities(htmlspecialchars($_POST['uuid'])
 
 $authentication=new Authentication();
 
+$raw_input = file_get_contents('php://input');
+$input = @(json_decode($raw_input)); 
+$input = isset($input->data) ? $input->data : new StdClass();
 
-
-if(isset($_POST['id'])&&isset($_POST['email'])&&isset($_POST['token'])){
-
-	$uuid=isset($_POST['id'])?htmlentities(htmlspecialchars($_POST['id'])):NULL; 
-	$username=isset($_POST['email'])?htmlentities(htmlspecialchars($_POST['email'])):NULL; 
-	$token=@htmlentities(htmlspecialchars($_POST['token']));
+if(isset($input->id)&&isset($input->email)&&isset($input->token)){
+	$uuid=isset($input->id)?htmlentities(htmlspecialchars($input->id)):NULL; 
+	$username=isset($input->email)?htmlentities(htmlspecialchars($input->email)):NULL; 
+	$token=@htmlentities(htmlspecialchars($input->token));
 
 
 	//hash
@@ -64,13 +65,13 @@ if(isset($_POST['id'])&&isset($_POST['email'])&&isset($_POST['token'])){
 
 	//profile information
 
-	$full_name=@htmlentities(htmlspecialchars($_POST['full_name']));
-	$last_name=@htmlentities(htmlspecialchars($_POST['surname']));
-	$first_name=@htmlentities(htmlspecialchars($_POST['first_name']));
-	$image=@htmlentities(htmlspecialchars($_POST['image']));
-	$department=@htmlentities(htmlspecialchars($_POST['department']));
-	$office=@htmlentities(htmlspecialchars($_POST['office']));
-	$position=@htmlentities(htmlspecialchars($_POST['position']));
+	$full_name=@htmlentities(htmlspecialchars($input->full_name));
+	$last_name=@htmlentities(htmlspecialchars($input->surname));
+	$first_name=@htmlentities(htmlspecialchars($input->first_name));
+	$image=@htmlentities(htmlspecialchars($input->image));
+	$department=@htmlentities(htmlspecialchars($input->department));
+	$office=@htmlentities(htmlspecialchars($input->office));
+	$position=@htmlentities(htmlspecialchars($input->position));
 	
 
 	//generate department alias
@@ -139,16 +140,6 @@ if(isset($_POST['id'])&&isset($_POST['email'])&&isset($_POST['token'])){
 	}
 
 }
-
-
-
 	//return response
 	echo json_encode($response);
-
-
-
-
-
-
-
 ?>
