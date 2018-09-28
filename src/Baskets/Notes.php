@@ -25,6 +25,14 @@ class Notes
 
 		while($row=$sth->fetch(\PDO::FETCH_OBJ)){
 			if(empty($row->name)) $row->name=$row->first_name.' '.$row->last_name;
+			// parse date
+			if(@$row->date_modified) {
+				$time = explode (' ', $row->date_modified);
+				$time = date("g:i a", strtotime($time[1]));
+				$row->date_modified = date( "M. d, Y", strtotime($row->date_modified));
+				$row->date_modified.= " {$time}";
+			}
+
 			$result[]=$row;
 		}
 

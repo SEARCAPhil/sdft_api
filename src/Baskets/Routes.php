@@ -24,6 +24,13 @@ class Routes
 		$result=array();
 
 		while($row=$sth->fetch(\PDO::FETCH_OBJ)){
+			// parse date
+			if(@$row->date_created) {
+				$time = explode (' ', $row->date_created);
+				$time = date("g:i a", strtotime($time[1]));
+				$row->date_created = date( "M. d, Y", strtotime($row->date_created));
+				$row->date_created.= " {$time}";
+			}
 			$result[]=$row;
 		}
 

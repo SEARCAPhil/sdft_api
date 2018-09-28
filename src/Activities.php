@@ -53,6 +53,13 @@ class Activities
 
 		while($row=$sth->fetch(\PDO::FETCH_OBJ)){
 			if(empty($row->name)) $row->name=$row->first_name.' '.$row->last_name;
+			// parse date
+			if(@$row->date_created) {
+				$time = explode (' ', $row->date_created);
+				$time = date("g:i a", strtotime($time[1]));
+				$row->date_created = date( "M. d, Y", strtotime($row->date_created));
+				$row->date_created.= " {$time}";
+			}
 			$result[]=$row;
 		}
 

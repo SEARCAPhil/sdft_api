@@ -63,7 +63,8 @@ class Baskets
 
 		while($row=$sth->fetch(\PDO::FETCH_OBJ)){
 			if(strlen($row->description)>200) $row->description=substr($row->description, 0,200).'...';
-
+			if(@$row->date_created) $row->date_created = date( "m/d/Y", strtotime($row->date_created));
+			if(@$row->date_modified) $row->date_modified = date( "M. d, Y", strtotime($row->date_modified));
 			$basket=$row;
 
 			$basket->author=array();
@@ -79,6 +80,7 @@ class Baskets
 				if(empty($row2['name'])) $row2['name']=$row2['first_name'].' '.$row2['last_name'];
 
 				$basket->author=($row2);
+				
 			}
 
 			$result[]=$basket;
@@ -151,6 +153,13 @@ class Baskets
 		$image_dir='127.0.0.1/system/files/images/';
 
 		while($row=$sth->fetch(\PDO::FETCH_OBJ)){
+			// parse date
+			if(@$row->date_modified) {
+				$time = explode (' ', $row->date_modified);
+				$time = date("g:i a", strtotime($time[1]));
+				$row->date_modified = date( "M. d, Y", strtotime($row->date_modified));
+				$row->date_modified.= " {$time}";
+			}
 
 			//saved to author array
 			$author=array();
