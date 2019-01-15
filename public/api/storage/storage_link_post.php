@@ -39,8 +39,23 @@ $__identity=$token_class->get_token($db,$token);
 
 
 //IP address
-$ip=$_SERVER['REMOTE_ADDR'];
+$ip = $_SERVER['REMOTE_ADDR'];
 
+function get_attachment_parent_details ($db, $id) {
+	$result = [];
+	$attachments = new Attachments();
+	$parent = $attachments->details($db, $id);
+	$id = isset($parent[0]->id) ? $parent[0]->id : null;
+
+	if(is_null($id)) return $result;
+
+	// check if there is another parent file
+	$parentId = $parent[0]->original_copy_id;
+	if(!is_null($parentId)) return get_attachment_parent_details ($db, $parentId);
+
+	return $parent;
+
+}
 
 if($method=='POST'){
 	if(isset($__identity->id)){
@@ -76,7 +91,8 @@ if($method=='POST'){
 
 		//get parent attachment
 		$parent=$attachments_token->details($db,$token_details[0]->id);
-
+		$parent_details = $attachments_token->details($db,$token_details[0]->id);
+		$parent = get_attachment_parent_details ($db, $parent_details[0]->id);
 
 			/*--------------------------------
 			| Prevent unauthorized access
