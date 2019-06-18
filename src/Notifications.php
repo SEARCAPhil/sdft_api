@@ -7,7 +7,9 @@ namespace SDFT;
 class Notifications
 {
 	
-	function __construct(){}
+	function __construct(){
+		$this->lastInserted = [];
+	}
 
 	function __added_as_collaborator_message($from,$basket_name){
 
@@ -185,7 +187,10 @@ class Notifications
 
 
 			//non empty message
-			if(!empty($row->message)) $result[]=$row;
+			if(!empty($row->message)) {
+				$result[]=$row;
+				$this->lastInserted = $row;
+			}
 		}
 
 		
@@ -235,6 +240,103 @@ class Notifications
 
 		return $sth->rowCount();
 	}
+
+
+	function view($db,$id){
+
+		#get all collaborators for a certain basket,excluding the author of the basket
+		$sql='SELECT notifications.*,basket.basket_name as name,basket.id as basket_id FROM notifications LEFT JOIN basket on notifications.basket_id=basket.id where notifications.id=:id ORDER BY notifications.date_created DESC';
+		$sql2='SELECT account_profile.* FROM account_profile where uid=:id ORDER BY date_modified DESC LIMIT 1';
+
+
+		$sth=$db->prepare($sql);
+		$sth->bindValue(':id',$id);
+
+		
+		$sth->execute();
+
+
+		$sth2=$db->prepare($sql2);
+
+		$result=array();
+
+		while($row=$sth->fetch(\PDO::FETCH_OBJ)){
+
+			$sth2->bindValue(':id',$row->sender_id);
+			$sth2->execute();
+
+			$row->sender=new \StdClass;
+
+			$sender_name='';
+
+			while($row2=$sth2->fetch(\PDO::FETCH_OBJ)){
+				if(empty($row2->name)) $row2->name=$row2->first_name.' '.$row2->last_name;
+
+				#assign to name
+				$sender_name=$row2->name;
+
+				#assign to sender object
+				$row->sender=$row2;
+			}
+
+			/*---------------------------------
+			| MESSAGE TEMPLATE
+			|
+			|---------------------------------*/
+
+			if($row->action==='added_as_collaborator'){
+				$row->message=self::__added_as_collaborator_message($sender_name,$row->name);
+			}
+
+
+			if($row->action==='uploaded'){
+				$row->message=self::__uploaded_message($sender_name,$row->name);
+			}
+
+
+			if($row->action==='file_category'){ 
+				$row->message=self::__changed_category__message($sender_name,$row->name,$row->subject);
+			}
+
+
+			if($row->action==='changed_description'){ 
+				$row->message=self::__changed_description__message($sender_name,$row->name);
+			}
+
+
+			if($row->action==='published'){ 
+				$row->message=self::__published_message($sender_name,$row->name);
+			}
+
+			if($row->action==='closed'){ 
+				$row->message=self::__closed_message($sender_name,$row->name);
+			}
+
+			if($row->action==='notes'){ 
+				$row->message=self::__post_notes_message($sender_name,$row->name);
+			}
+
+			if($row->action==='route_in'){ 
+				$row->message=self::__received_basket_message($sender_name,$row->name);
+			}
+
+			if($row->action==='route_out'){ 
+				$row->message=self::__sent_basket_message($sender_name,$row->name);
+			}
+
+			if($row->action==='comment'){ 
+				$row->message=self::__comment_message($sender_name,$row->name,$row->subject);
+			}
+
+
+
+			//non empty message
+			if(!empty($row->message)) $result[]=$row;
+		}
+
+		return $result;
+	}
+
 
 
 }

@@ -7,6 +7,7 @@ use SDFT\Activities;
 use SDFT\Attachments;
 use SDFT\Notifications;
 use SDFT\Baskets\Collaborators;
+use SDFT\PusherNotification;
 
 
 
@@ -108,7 +109,7 @@ if(in_array($__identity->uid,$collaborators_array)){
 			|--------------------------------*/
 		
 			$notifications=new Notifications();
-
+			$recent_notification = array();
 
 
 
@@ -121,7 +122,14 @@ if(in_array($__identity->uid,$collaborators_array)){
 						//exclude self from notification
 						if($__identity->uid!=$collaborators_array[$i]){
 							//log to database
-							$notifications->notify($db,$__identity->uid,$collaborators_array[$i],$id,'closed');
+							$notification_id = $notifications->notify($db,$__identity->uid,$collaborators_array[$i],$id,'closed');
+
+							// notify channel
+							if(!count($recent_notification)) {
+								$recent_notification = $notifications->view($db,$notification_id);
+							}
+							$notif = new PusherNotification ();
+							$notif->send("private-{$collaborators_array[$i]}-basket-user",$recent_notification);
 						}
 
 					}

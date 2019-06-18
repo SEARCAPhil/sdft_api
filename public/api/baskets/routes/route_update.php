@@ -7,6 +7,7 @@ use SDFT\Baskets\Routes;
 use SDFT\Activities;
 use SDFT\Notifications;
 use SDFT\Baskets\Collaborators;
+use SDFT\PusherNotification;
 
 
 
@@ -108,13 +109,21 @@ $activity=new Activities();
 			|--------------------------------*/
 			//get basket information
 			$notification=new Notifications();
+			$recent_notification = array();
+
 			//send notification
 			for ($i=0; $i <count($collaborators_array) ; $i++) { 
 			
 				//exclude self from notification
 				if($__identity->uid!=$collaborators_array[$i]){
 					//log to database
-					$notification->notify($db,$__identity->uid,$basket_collaborators[$i]->uid,$id,$action=='in'?'route_in':'route_out',$action=='in'?'Received this basket':'Sent this basket');
+					$notification_id = $notification->notify($db,$__identity->uid,$basket_collaborators[$i]->uid,$id,$action=='in'?'route_in':'route_out',$action=='in'?'Received this basket':'Sent this basket');
+					// notify channel
+					if(!count($recent_notification)) {
+						$recent_notification = $notification->view($db,$notification_id);
+					}
+					$notif = new PusherNotification ();
+					$notif->send("private-{$collaborators_array[$i]}-basket-user",$recent_notification);
 				}
 
 			}

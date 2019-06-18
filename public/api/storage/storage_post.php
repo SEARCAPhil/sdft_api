@@ -8,6 +8,7 @@ use SDFT\Attachments;
 use SDFT\Activities;
 use SDFT\Notifications;
 use SDFT\Baskets\Collaborators;
+use SDFT\PusherNotification;
 
 require_once('../../../vendor/autoload.php');
 require_once('../../../config/database.php');
@@ -51,6 +52,7 @@ if($method=='POST'){
 		$attachments=new Attachments();
 		$activities=new Activities();
 		$notifications=new Notifications();
+		$recent_notification = array();
 
 		$ids = @json_decode($_POST['ids']);
 		$new_basket_id = (int) @$_POST['basket_id'];
@@ -105,7 +107,13 @@ if($method=='POST'){
 							//exclude self from notification
 							if($__identity->uid!=$collaborators_array[$i]){
 								//log to database
-								$notifications->notify($db,$__identity->uid,$collaborators_array[$i],$new_basket_id,'uploaded');
+								$notification_id = $notifications->notify($db,$__identity->uid,$collaborators_array[$i],$new_basket_id,'uploaded');
+								// notify channel
+								if(!count($recent_notification)) {
+									$recent_notification = $notifications->view($db,$notification_id);
+								}
+								$notif = new PusherNotification ();
+								$notif->send("private-{$collaborators_array[$i]}-basket-user",$recent_notification);
 							}
 
 						}

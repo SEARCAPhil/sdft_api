@@ -8,6 +8,7 @@ use SDFT\Baskets\Collaborators;
 use SDFT\Token;
 use SDFT\Activities;
 use SDFT\Notifications;
+use SDFT\PusherNotification;
 
 
 
@@ -97,6 +98,7 @@ if(isset($__identity->id)){
 			|--------------------------------*/
 			//get basket information
 			$notifications=new Notifications();
+			$recent_notification = array();
 
 			$basket_collaborators=($collaborators->get_collaborators($db,$id,$__identity->uid));
 
@@ -108,9 +110,19 @@ if(isset($__identity->id)){
 				if($basket_collaborators[0]->status!='draft'){
 
 					for ($i=0; $i <count($basket_collaborators) ; $i++) { 
+
+						//exclude self from notification
+						if($__identity->uid!=$collaborators_array[$i]){
 						
-						//log to database
-						$notifications->notify($db,$__identity->uid,$basket_collaborators[$i]->uid,$id,'notes');
+							//log to database
+							$notification_id = $notifications->notify($db,$__identity->uid,$basket_collaborators[$i]->uid,$id,'notes');
+							// notify channel
+							if(!count($recent_notification)) {
+								$recent_notification = $notifications->view($db,$notification_id);
+							}
+							$notif = new PusherNotification ();
+							$notif->send("private-{$collaborators_array[$i]}-basket-user",$recent_notification);
+						}
 
 					}
 				}

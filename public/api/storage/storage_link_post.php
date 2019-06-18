@@ -9,6 +9,7 @@ use SDFT\Attachments\Token as Attachments_Token;
 use SDFT\Activities;
 use SDFT\Notifications;
 use SDFT\Baskets\Collaborators;
+use SDFT\PusherNotification;
 
 require_once('../../../vendor/autoload.php');
 require_once('../../../config/database.php');
@@ -70,6 +71,7 @@ if($method=='POST'){
 		$activities=new Activities();
 		$notifications=new Notifications();
 		$attachments_token=new Attachments_Token();
+		$recent_notification = array();
 
 
 		$new_url = filter_input(INPUT_POST, 'url', FILTER_SANITIZE_URL);
@@ -134,6 +136,32 @@ if($method=='POST'){
 					}else{
 						return 0;
 					}
+				}
+
+				# successfull
+				if($res) {
+						//log to db
+						$activities->log_activity($db,$__identity->profile_id,$basket_id,'Attached new file '.$parent[0]->original_filename);
+
+						//send only if basket is already published 
+						if($basket_collaborators[0]->status!='draft'){
+	
+							for ($i=0; $i <count($collaborators_array) ; $i++) { 
+								
+								//exclude self from notification
+								#if($__identity->uid!=$collaborators_array[$i]){
+									//log to database
+									$notification_id = $notifications->notify($db,$__identity->uid,$collaborators_array[$i],$basket_id,'uploaded');
+									// notify channel
+									if(!count($recent_notification)) {
+										$recent_notification = $notifications->view($db,$notification_id);
+									}
+									$notif = new PusherNotification ();
+									$notif->send("private-{$collaborators_array[$i]}-basket-user",$recent_notification);
+								}
+	
+							#}
+						}
 				}
 				
 			}else{

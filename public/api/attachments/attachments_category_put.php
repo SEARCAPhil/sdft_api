@@ -8,6 +8,7 @@ use SDFT\Attachments;
 use SDFT\Activities;
 use SDFT\Notifications;
 use SDFT\Baskets\Collaborators;
+use SDFT\PusherNotification;
 
 
 require_once('../../../vendor/autoload.php');
@@ -139,6 +140,7 @@ if($category>1&&strlen($new_category)>1){
 	//get basket information
 
 	$notifications=new Notifications();
+	$recent_notification = array();
 
 		//send only if basket is already published
 		if($basket_collaborators[0]->status!='draft'){
@@ -147,7 +149,13 @@ if($category>1&&strlen($new_category)>1){
 				
 				if($collaborators_array[$i]!=$__identity->uid){
 					//log to database
-					$notifications->notify($db,$__identity->uid,$collaborators_array[$i],$basket_id,'file_category','Set category of '.$file_name. ' to '.$new_category);
+					$notification_id = $notifications->notify($db,$__identity->uid,$collaborators_array[$i],$basket_id,'file_category','Set category of '.$file_name. ' to '.$new_category);
+					// notify channel
+					if(!count($recent_notification)) {
+						$recent_notification = $notifications->view($db,$notification_id);
+					}
+					$notif = new PusherNotification ();
+					$notif->send("private-{$collaborators_array[$i]}-basket-user",$recent_notification);
 				}
 
 			}

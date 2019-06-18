@@ -1,13 +1,13 @@
 <?php
 header('Access-Control-Allow-Origin: *');
 
-
 use SDFT\Baskets;
 use SDFT\Token;
 use SDFT\Attachments;
 use SDFT\Activities;
 use SDFT\Notifications;
 use SDFT\Baskets\Collaborators;
+use SDFT\PusherNotification;
 
 
 require_once('../../../vendor/autoload.php');
@@ -155,7 +155,7 @@ if(in_array($__identity->uid,$collaborators_array)&&($basket_collaborators[0]->s
 		//log to database
 		$file_name=utf8_encode(htmlentities(htmlspecialchars($_FILES['file']['name'])));
 		$activities->log_activity($db,$__identity->profile_id,$id,'Attached new file '.$file_name);
-
+		$recent_notification = array();
 		
 		//send only if basket is already published 
 		if($basket_collaborators[0]->status!='draft'){
@@ -165,7 +165,13 @@ if(in_array($__identity->uid,$collaborators_array)&&($basket_collaborators[0]->s
 				//exclude self from notification
 				if($__identity->uid!=$collaborators_array[$i]){
 					//log to database
-					$notifications->notify($db,$__identity->uid,$collaborators_array[$i],$id,'uploaded');
+					$notification_id = $notifications->notify($db,$__identity->uid,$collaborators_array[$i],$id,'uploaded');
+					// notify channel
+					if(!count($recent_notification)) {
+						$recent_notification = $notifications->view($db,$notification_id);
+					}
+					$notif = new PusherNotification ();
+					$notif->send("private-{$collaborators_array[$i]}-basket-user",$recent_notification);
 				}
 
 			}
