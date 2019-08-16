@@ -8,6 +8,8 @@ use SDFT\Activities;
 use SDFT\Notifications;
 use SDFT\Baskets\Collaborators;
 use SDFT\PusherNotification;
+use SDFT\OCRParser;
+use SDFT\TesseractOCRParser;
 
 
 require_once('../../../vendor/autoload.php');
@@ -15,10 +17,10 @@ require_once('../../../config/database.php');
 
 $response['status']=300;
 
-function attach($db,$file,$basket_id,$category_id,$author_id){
-
+function attach($db,$file,$basket_id,$category_id,$author_id){ 
+	#attach_to_thumbnails($file['tmp_name']); exit;
 	$allowed_format=array('png','jpg','jpeg','pdf','PDF','doc','docx','xls','xlsx');
-	$allowed_size=41943040;#40MB
+	$allowed_size=104857600; #100MB
 	$file_name=utf8_encode(htmlentities(htmlspecialchars($file['name'])));
 	$file_type=htmlentities(htmlspecialchars($file['type']));
 	$file_tmp_name=$file['tmp_name'];
@@ -70,6 +72,63 @@ function attach($db,$file,$basket_id,$category_id,$author_id){
 
 	}#/format
 
+}
+
+# https://stackoverflow.com/questions/3338123/how-do-i-recursively-delete-a-directory-and-its-entire-contents-files-sub-dir
+function rrmdir($dir) { 
+	if (is_dir($dir)) { 
+		$objects = scandir($dir); 
+		foreach ($objects as $object) { 
+			if ($object != "." && $object != "..") { 
+				if (is_dir($dir."/".$object))
+					rrmdir($dir."/".$object);
+				else
+					unlink($dir."/".$object); 
+			} 
+		}
+		rmdir($dir); 
+	} 
+}
+
+function attach_to_thumbnails ($file) {
+	$teseractParser = new TesseractOCRParser();
+	$output_dir = time();
+	#$output_dir = $_SERVER['DOCUMENT_ROOT'].'/sdft_api/public/uploads/temp/'.$base_dir;
+	$teseractParser->PDFtoImage($_SERVER['DOCUMENT_ROOT'].'/sdft_api/public/uploads/7/0606190136141601925747.pdf[0]', $output_dir);
+	/*$im = new \Imagick($file); 
+	$im->setRegistry('temporary-path', './temporary');
+	$im->setImageFormat('jpg'); 
+	header('Content-Type: image/jpeg'); 
+	echo $im;*/
+	#var_dump(shell_exec("which /usr/local/bin/convert"));
+
+	#https://stackoverflow.com/questions/31511553/homebrew-recompile-from-edited-source-code/
+	#https://github.com/Homebrew/brew/issues/2743
+	
+	# remove or create directory before uploading
+	//$base_dir = '1563239008';
+	//$dir = $_SERVER['DOCUMENT_ROOT'].'/sdft_api/public/uploads/temp/'.$base_dir;
+	/*if(is_dir($dir)) {
+		rrmdir($dir);
+		mkdir($dir);
+	} else {
+		mkdir($dir);
+	}*/
+
+	//$com = '/usr/local/bin/convert -density 350 -quality 200  -define registry:temporary-path='.$_SERVER['DOCUMENT_ROOT'].'/sdft_api/public/uploads/temp/tmp "'.$_SERVER['DOCUMENT_ROOT'].'/sdft_api/public/uploads/7/0606190136141601925747.pdf"'.' "'.$dir.'/output-%d.png"';
+	//exec($com, $output);
+//var_dump($output);
+	#var_dump(exec('/usr/local/bin/tesseract '.$dir.'/output-1.png -l eng'));
+	/*$text =  (new TesseractOCR($dir.'/output-30.png'))->lang('eng')->run();
+	$regex_results = [];
+
+	$ocrParser = new OCRParser();
+	$ocrParser->providers(['RFP', 'RevolvingFundReplenishment', 'RevolvingFundDisbursement', 'RevolvingFundAvailment']);
+	$ocrParser->text($text);
+	$ocrParser->run();
+	var_dump($ocrParser->which());
+var_dump($text);*/
+	#var_dump($ocrParser->results);
 }
 
 

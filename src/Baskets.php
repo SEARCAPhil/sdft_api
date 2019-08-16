@@ -1,6 +1,7 @@
 <?php
 namespace SDFT;
 use SDFT\Attachments\Comments;
+#use SDFT\Attachments\Autolabel;
 
 require_once('../../../vendor/autoload.php');
 
@@ -137,7 +138,7 @@ class Baskets
 
 	function get_attachments($db,$id,$comments=false){
 
-		$sql='SELECT attachments.id,filename as unique_name,original_filename as name,date_created,status,account_profile.uid,profile_id,basket_id,attachments.type,basket_category.category,attachments.size,profile_name,first_name,last_name,department_alias as alias,department,position,profile_image as image, attachments.date_modified from attachments LEFT JOIN account_profile on account_profile.id=attachments.profile_id LEFT JOIN basket_category on category_id=basket_category.id where basket_id=:id and attachments.is_deleted=0 ORDER BY attachments.date_modified DESC';
+		$sql='SELECT attachments.id,filename as unique_name,original_filename as name,date_created,status,account_profile.uid,profile_id,basket_id,attachments.type,basket_category.category,attachments.size,profile_name,first_name,last_name,department_alias as alias,department,position,profile_image as image, attachments.date_modified, attachments.label from attachments LEFT JOIN account_profile on account_profile.id=attachments.profile_id LEFT JOIN basket_category on category_id=basket_category.id where basket_id=:id and attachments.is_deleted=0 ORDER BY attachments.date_modified DESC';
 
 		$sth=$db->prepare($sql);
 
@@ -153,6 +154,7 @@ class Baskets
 		$image_dir='127.0.0.1/system/files/images/';
 
 		while($row=$sth->fetch(\PDO::FETCH_OBJ)){
+
 			// parse date
 			if(@$row->date_modified) {
 				$time = explode (' ', $row->date_modified);
@@ -171,11 +173,11 @@ class Baskets
 			$author['position']=$row->position;
 			$author['department']=$row->department;
 			$author['alias']=$row->alias;
-			//$author['image']=$image_dir.''.$row->image;
-			$author['image']='http://192.168.80.53/SDFT_CORDOVA_APP/www/assets/images/user.png';
+			$author['image']=$image_dir.''.$row->image;
+			//$author['image']='http://192.168.80.53/SDFT_CORDOVA_APP/www/assets/images/user.png';
 
 			$file=array();
-			$file['id']=$row->id;
+			$file['id'] = $row->id;
 			$file['name']=$row->name;
 			$file['category']=$row->category;
 			$file['unique_name']=$row->unique_name;
@@ -183,7 +185,11 @@ class Baskets
 			$file['size']=$row->size;
 			$file['status']=$row->status;
 			$file['url']=$file_dir.''.$row->unique_name;
+			$file['label']=$row->label;
 			$file['date_modified']=$row->date_modified;
+			// get label
+			//$lab = new Autolabel();
+			//$file['autolabel_background_process'] = $lab->get_attachments_autolabel_process($db, $row->id);
 
 			$data=array('files'=>$file,'author'=>$author);
 
